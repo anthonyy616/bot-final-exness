@@ -1,0 +1,51 @@
+HOW TO OPEN A PORT ON WINDOWS SERVER 2022 (VPS)
+=================================================
+
+To make your bot accessible from the internet on Port 1001, you need to allow traffic through the Windows Firewall.
+
+Step 1: Open Windows Defender Firewall with Advanced Security
+------------------------------------------------------------
+1. Click the **Start** button.
+2. Type `Windows Defender Firewall with Advanced Security` and press **Enter**.
+   (Or go to Server Manager > Tools > Windows Defender Firewall with Advanced Security).
+
+Step 2: Create a New Inbound Rule
+---------------------------------
+1. In the left pane, click on **Inbound Rules**.
+2. In the right pane (Actions), click **New Rule...**.
+
+Step 3: Rule Type
+-----------------
+1. Select **Port**.
+2. Click **Next**.
+
+Step 4: Protocol and Ports
+--------------------------
+1. Ensure **TCP** is selected.
+2. Select **Specific local ports**.
+3. Enter `1001` in the text box.
+4. Click **Next**.
+
+Step 5: Action
+--------------
+1. Select **Allow the connection**.
+2. Click **Next**.
+
+Step 6: Profile
+---------------
+1. Ensure all three are checked: **Domain**, **Private**, and **Public**.
+   (VPS instances often classify their network as Public).
+2. Click **Next**.
+
+Step 7: Name
+------------
+1. Name: `Trading Bot (Port 1001)`
+2. Description (Optional): `Allow external access to trading bot UI`.
+3. Click **Finish**.
+
+VERIFICATION
+------------
+Once done, you should be able to access your bot at:
+http://YOUR_VPS_IP:1001
+
+Note: If your VPS provider (AWS, Azure, Google Cloud, DigitalOcean, etc.) has an external firewall or Security Group, you MUST also open Port 1001 (TCP) in their cloud console.

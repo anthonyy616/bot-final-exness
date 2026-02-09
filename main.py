@@ -5,6 +5,10 @@ import signal
 import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # --- Production Logging Setup ---
 LOG_DIR = Path(__file__).parent / "logs"
@@ -74,7 +78,7 @@ from api.server import app
 # --- Configuration ---
 # Default to production settings, override with environment variables
 HOST = os.getenv("BOT_HOST", "0.0.0.0")
-PORT = int(os.getenv("BOT_PORT", "800"))
+PORT = int(os.getenv("BOT_PORT", "1001"))
 
 # --- Graceful Shutdown ---
 def signal_handler(signum, frame):
