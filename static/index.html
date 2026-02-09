@@ -315,78 +315,103 @@
 
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-bold text-gray-500 mb-2">Indices (Multi-Select)</label>
-                            <div
-                                class="grid grid-cols-2 gap-1 p-2 rounded bg-slate-50 dark:bg-slate-900 border border-slate-600 max-h-60 overflow-y-auto custom-scrollbar">
+                            <label class="block text-xs font-bold text-gray-500 mb-2">Assets (Multi-Select)</label>
+                            <div class="grid grid-cols-2 gap-1 p-2 rounded bg-slate-50 dark:bg-slate-900 border border-slate-600 max-h-80 overflow-y-auto custom-scrollbar">
 
-                                <!-- FX Indices -->
-                                <div
-                                    class="col-span-2 text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-1 mt-1">
-                                    FX Indices</div>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4"
-                                        value="FX Vol 20">
-                                    <span class="text-xs font-medium">FX Vol 20</span>
+                                <!-- Forex Majors -->
+                                <div class="col-span-2 text-[10px] font-bold text-blue-500 uppercase tracking-wider mb-1 mt-1">Forex Majors</div>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="EURUSD"><span class="text-xs font-medium">EURUSD</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4"
-                                        value="FX Vol 40">
-                                    <span class="text-xs font-medium">FX Vol 40</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="GBPUSD"><span class="text-xs font-medium">GBPUSD</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4"
-                                        value="FX Vol 60">
-                                    <span class="text-xs font-medium">FX Vol 60</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="USDJPY"><span class="text-xs font-medium">USDJPY</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4"
-                                        value="FX Vol 80">
-                                    <span class="text-xs font-medium">FX Vol 80</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="USDCHF"><span class="text-xs font-medium">USDCHF</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4"
-                                        value="FX Vol 99">
-                                    <span class="text-xs font-medium">FX Vol 99</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="USDCAD"><span class="text-xs font-medium">USDCAD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="AUDUSD"><span class="text-xs font-medium">AUDUSD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-blue-600 h-4 w-4" value="NZDUSD"><span class="text-xs font-medium">NZDUSD</span>
                                 </label>
 
-                                <!-- SFX Indices -->
-                                <div
-                                    class="col-span-2 text-[10px] font-bold text-purple-500 uppercase tracking-wider mt-3 mb-1 border-t border-slate-700 pt-2">
-                                    SFX Indices</div>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4"
-                                        value="SFX Vol 20">
-                                    <span class="text-xs font-medium">SFX Vol 20</span>
+                                <!-- Forex Minors -->
+                                <div class="col-span-2 text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1 mt-3 border-t border-slate-700 pt-2">Forex Minors</div>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="EURGBP"><span class="text-xs font-medium">EURGBP</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4"
-                                        value="SFX Vol 40">
-                                    <span class="text-xs font-medium">SFX Vol 40</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="EURJPY"><span class="text-xs font-medium">EURJPY</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4"
-                                        value="SFX Vol 60">
-                                    <span class="text-xs font-medium">SFX Vol 60</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="GBPJPY"><span class="text-xs font-medium">GBPJPY</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4"
-                                        value="SFX Vol 80">
-                                    <span class="text-xs font-medium">SFX Vol 80</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="AUDNZD"><span class="text-xs font-medium">AUDNZD</span>
                                 </label>
-                                <label
-                                    class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
-                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4"
-                                        value="SFX Vol 99">
-                                    <span class="text-xs font-medium">SFX Vol 99</span>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="EURAUD"><span class="text-xs font-medium">EURAUD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="GBPAUD"><span class="text-xs font-medium">GBPAUD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="EURCHF"><span class="text-xs font-medium">EURCHF</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="AUDCAD"><span class="text-xs font-medium">AUDCAD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-gray-600 h-4 w-4" value="NZDJPY"><span class="text-xs font-medium">NZDJPY</span>
+                                </label>
+
+                                <!-- Metals -->
+                                <div class="col-span-2 text-[10px] font-bold text-yellow-500 uppercase tracking-wider mb-1 mt-3 border-t border-slate-700 pt-2">Metals</div>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-yellow-600 h-4 w-4" value="XAUUSD"><span class="text-xs font-medium">XAUUSD (Gold)</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-yellow-600 h-4 w-4" value="XAGUSD"><span class="text-xs font-medium">XAGUSD (Silver)</span>
+                                </label>
+
+                                <!-- Indices -->
+                                <div class="col-span-2 text-[10px] font-bold text-green-500 uppercase tracking-wider mb-1 mt-3 border-t border-slate-700 pt-2">Indices</div>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-green-600 h-4 w-4" value="NAS100"><span class="text-xs font-medium">NAS100</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-green-600 h-4 w-4" value="US30"><span class="text-xs font-medium">US30</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-green-600 h-4 w-4" value="US500"><span class="text-xs font-medium">US500</span>
+                                </label>
+
+                                <!-- Oil -->
+                                <div class="col-span-2 text-[10px] font-bold text-orange-500 uppercase tracking-wider mb-1 mt-3 border-t border-slate-700 pt-2">Oil</div>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-orange-600 h-4 w-4" value="USOIL"><span class="text-xs font-medium">USOIL</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-orange-600 h-4 w-4" value="UKOIL"><span class="text-xs font-medium">UKOIL</span>
+                                </label>
+
+                                <!-- Crypto -->
+                                <div class="col-span-2 text-[10px] font-bold text-purple-500 uppercase tracking-wider mb-1 mt-3 border-t border-slate-700 pt-2">Crypto</div>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4" value="BTCUSD"><span class="text-xs font-medium">BTCUSD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4" value="ETHUSD"><span class="text-xs font-medium">ETHUSD</span>
+                                </label>
+                                <label class="flex items-center space-x-2 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 p-1 rounded transition">
+                                    <input type="checkbox" class="symbol-check accent-purple-600 h-4 w-4" value="SOLUSD"><span class="text-xs font-medium">SOLUSD</span>
                                 </label>
 
                             </div>
@@ -673,6 +698,7 @@
             const gridDist = cfg.grid_distance || 50;
             const tpPips = cfg.tp_pips || 150;
             const slPips = cfg.sl_pips || 200;
+            const pipSize = cfg.pip_size || 0.0001;
             const bxLot = cfg.bx_lot || 0.01;
             const syLot = cfg.sy_lot || 0.01;
             const sxLot = cfg.sx_lot || 0.01;
@@ -695,11 +721,17 @@
                 </summary>
                 <div class="p-3 space-y-3 border-t border-slate-700">
                     <!-- Grid Distance & TP/SL -->
-                    <div class="grid grid-cols-3 gap-2">
+                    <!-- Grid Distance & TP/SL -->
+                    <div class="grid grid-cols-4 gap-2">
                         <div>
-                            <label class="block text-[10px] text-gray-500">Spread (pips)</label>
+                            <label class="block text-[10px] text-gray-500">Spread/Grid (pips)</label>
                             <input type="number" id="griddist_${safeId}" step="1" value="${gridDist}"
                                 class="w-full p-1.5 text-sm rounded bg-slate-900 border border-slate-600">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-500">Pip Size</label>
+                            <input type="number" readonly value="${pipSize}"
+                                class="w-full p-1.5 text-sm rounded bg-slate-800 border border-slate-700 text-slate-500">
                         </div>
                         <div>
                             <label class="block text-[10px] text-green-400">TP (pips)</label>

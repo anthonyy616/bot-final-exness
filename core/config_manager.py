@@ -44,30 +44,51 @@ PIP_SIZES = {
 def get_default_symbol_config(symbol: str = "EURUSD") -> Dict[str, Any]:
     """
     Default configuration for a single symbol/asset (Pair Strategy)
-
-    - pip_size: Price movement multiplier for pips
-    - grid_distance: Pips between first and second atomic fire
-    - tp_pips/sl_pips: Take profit and stop loss distances
-    - Named lot sizes for each position type
-    - single_fire_*: Single fire order config (lot, tp, sl; direction is auto)
+    Defaults derived from Exness asset class characteristics.
     """
     # Get default pip size or fallback to 0.0001
     pip_size = PIP_SIZES.get(symbol, 0.0001)
 
+    # Asset Class Defaults
+    # Gold (XAUUSD)
+    if symbol == "XAUUSD":
+        grid = 50.0; tp = 100.0; sl = 150.0; prot = 200.0
+    # Silver (XAGUSD)
+    elif symbol == "XAGUSD":
+        grid = 50.0; tp = 100.0; sl = 150.0; prot = 200.0
+    # Crypto (BTC)
+    elif symbol.startswith("BTC"):
+        grid = 100.0; tp = 200.0; sl = 300.0; prot = 500.0
+    # Crypto (ETH, SOL, etc)
+    elif symbol in ["ETHUSD", "SOLUSD", "BNBUSD"]:
+        grid = 100.0; tp = 200.0; sl = 300.0; prot = 500.0
+    # Indices (NAS100, US30)
+    elif symbol in ["NAS100", "US30"]:
+        grid = 30.0; tp = 50.0; sl = 80.0; prot = 100.0
+    # Indices (US500 - low volatility)
+    elif symbol == "US500":
+        grid = 8.0; tp = 15.0; sl = 20.0; prot = 30.0
+    # Oil
+    elif "OIL" in symbol:
+        grid = 40.0; tp = 80.0; sl = 100.0; prot = 150.0
+    # Forex (Default)
+    else:
+        grid = 20.0; tp = 50.0; sl = 60.0; prot = 100.0
+
     return {
         "enabled": False,
         "pip_size": pip_size,        # Conversion factor for pips
-        "grid_distance": 50.0,       # Pips between atomic fires
-        "tp_pips": 150.0,            # Take profit distance
-        "sl_pips": 200.0,            # Stop loss distance
+        "grid_distance": grid,       # Pips between atomic fires
+        "tp_pips": tp,               # Take profit distance
+        "sl_pips": sl,               # Stop loss distance
         "bx_lot": 0.01,              # Initial Buy lot (Pair X)
         "sy_lot": 0.01,              # Initial Sell lot (Pair Y)
         "sx_lot": 0.01,              # Completing Sell lot (Pair X)
         "by_lot": 0.01,              # Completing Buy lot (Pair Y)
         "single_fire_lot": 0.01,         # Single fire lot size
-        "single_fire_tp_pips": 150.0,    # Single fire TP distance
-        "single_fire_sl_pips": 200.0,    # Single fire SL distance
-        "protection_distance": 100.0,    # Pips before nuclear reset on reversal
+        "single_fire_tp_pips": tp,       # Single fire TP 
+        "single_fire_sl_pips": sl,       # Single fire SL
+        "protection_distance": prot,     # Pips before nuclear reset on reversal
     }
 
 

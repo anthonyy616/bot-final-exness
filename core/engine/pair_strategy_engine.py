@@ -97,7 +97,35 @@ class PairStrategyEngine:
         self.activity_log = ActivityLogger(symbol, user_id, session_logger=session_logger)
 
         # Persistence
+        # Persistence
         self.db_path = f"db/pair_strategy_{user_id}.db"
+
+        # pip_size cache
+        self.pip_size = self.config_manager.get_pip_size(self.symbol)
+        
+    def _get_filling_mode(self):
+        """
+        Get appropriate filling mode for the symbol.
+        Exness often requires IOC, but we check symbol_info to be safe.
+        """
+        symbol_info = mt5.symbol_info(self.symbol)
+        if not symbol_info:
+            return mt5.ORDER_FILLING_IOC
+            
+        # Check logic: if FOK is allowed, usage it? Or prefer IOC?
+        # Exness Pro/Zero: Market execution usually implies IOC or Return.
+        # ORDER_FILLING_IOC is generally safer for market orders.
+        # Flags: 1=FOK, 2=IOC, 3=FOK+IOC
+        filling_mode = symbol_info.filling_mode
+        
+        if filling_mode == 2:  # SYMBOL_FILLING_IOC
+            return mt5.ORDER_FILLING_IOC
+        elif filling_mode == 1:  # SYMBOL_FILLING_FOK
+            return mt5.ORDER_FILLING_FOK
+        elif filling_mode == 3:  # SYMBOL_FILLING_FOK | SYMBOL_FILLING_IOC
+            return mt5.ORDER_FILLING_IOC  # Prefer IOC
+        
+        return mt5.ORDER_FILLING_IOC # Default fallback
 
     # ========================
     # CONFIG ACCESSORS
@@ -166,10 +194,17 @@ class PairStrategyEngine:
         self.running = True
         self.graceful_stop = False
 
+        # Ensure symbol is selected in Market Watch
+        if not mt5.symbol_select(self.symbol, True):
+            self.activity_log.log_error(f"Failed to select symbol {self.symbol}")
+            self.running = False
+            return
+
         # Get current tick
         tick = mt5.symbol_info_tick(self.symbol)
         if not tick:
             self.activity_log.log_error("Failed to get tick for start")
+            self.running = False
             return
 
         ask, bid = tick.ask, tick.bid
@@ -308,8 +343,9 @@ class PairStrategyEngine:
         start = self.state.start_price
 
         # Check if grid distance reached (either direction)
-        triggered_up = ask >= start + self.grid_distance
-        triggered_down = bid <= start - self.grid_distance
+        # Check if grid distance reached (either direction)
+        triggered_up = ask >= start + self.grid_distance * self.pip_size
+        triggered_down = bid <= start - self.grid_distance * self.pip_size
 
         if not (triggered_up or triggered_down):
             return
@@ -327,14 +363,14 @@ class PairStrategyEngine:
 
         # Calculate math-based trigger prices
         if self.state.location == "DOWN":
-            self.state.single_fire_trigger_price = trigger_price - 3 * self.grid_distance
-            self.state.protection_trigger_price = trigger_price + self.protection_distance
+            self.state.single_fire_trigger_price = trigger_price - 3 * self.grid_distance * self.pip_size
+            self.state.protection_trigger_price = trigger_price + self.protection_distance * self.pip_size
             sf_dir = "BUY"
             print(f"[TRIGGERS] {self.symbol}: SF trigger (BUY) @ bid <= {self.state.single_fire_trigger_price:.5f}, "
                   f"Protection @ ask >= {self.state.protection_trigger_price:.5f}")
         else:  # UP
-            self.state.single_fire_trigger_price = trigger_price + 3 * self.grid_distance
-            self.state.protection_trigger_price = trigger_price - self.protection_distance
+            self.state.single_fire_trigger_price = trigger_price + 3 * self.grid_distance * self.pip_size
+            self.state.protection_trigger_price = trigger_price - self.protection_distance * self.pip_size
             sf_dir = "SELL"
             print(f"[TRIGGERS] {self.symbol}: SF trigger (SELL) @ ask >= {self.state.single_fire_trigger_price:.5f}, "
                   f"Protection @ bid <= {self.state.protection_trigger_price:.5f}")
@@ -408,14 +444,14 @@ class PairStrategyEngine:
         # Determine price and TP/SL
         if direction == "buy":
             exec_price = tick.ask
-            tp = exec_price + tp_pips_val
-            sl = exec_price - sl_pips_val
+            tp = exec_price + tp_pips_val * self.pip_size
+            sl = exec_price - sl_pips_val * self.pip_size
             order_type = mt5.ORDER_TYPE_BUY
             check_price = tick.bid # For stop level validation
         else:
             exec_price = tick.bid
-            tp = exec_price - tp_pips_val
-            sl = exec_price + sl_pips_val
+            tp = exec_price - tp_pips_val * self.pip_size
+            sl = exec_price + sl_pips_val * self.pip_size
             order_type = mt5.ORDER_TYPE_SELL
             check_price = tick.ask # For stop level validation
 
@@ -425,6 +461,9 @@ class PairStrategyEngine:
             point = symbol_info.point
             stops_level = max(symbol_info.trade_stops_level, 10) # Min 10 pts safety
             min_dist = stops_level * point
+
+            # Also ensure TP/SL are at least 1 pip away if min_dist is tiny
+            min_dist = max(min_dist, self.pip_size)
 
             if direction == "buy":
                 if sl > check_price - min_dist:
@@ -453,7 +492,7 @@ class PairStrategyEngine:
             "magic": self.MAGIC_NUMBER,
             "comment": f"{leg_name} C{self.state.cycle_count}",
             "type_time": mt5.ORDER_TIME_GTC,
-            "type_filling": mt5.ORDER_FILLING_FOK,
+            "type_filling": self._get_filling_mode(),
             "deviation": 200
         }
 
@@ -539,7 +578,7 @@ class PairStrategyEngine:
             "deviation": 50,
             "magic": self.MAGIC_NUMBER,
             "comment": "close",
-            "type_filling": mt5.ORDER_FILLING_FOK
+            "type_filling": self._get_filling_mode()
         }
 
         result = mt5.order_send(request)
