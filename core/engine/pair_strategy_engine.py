@@ -141,14 +141,6 @@ class PairStrategyEngine:
         return float(self.config.get('grid_distance', 50.0))
 
     @property
-    def tp_pips(self) -> float:
-        return float(self.config.get('tp_pips', 150.0))
-
-    @property
-    def sl_pips(self) -> float:
-        return float(self.config.get('sl_pips', 200.0))
-
-    @property
     def bx_lot(self) -> float:
         return float(self.config.get('bx_lot', 0.01))
 
@@ -222,7 +214,7 @@ class PairStrategyEngine:
             self.state.bx_entry = bx_entry
             self.activity_log.log_fire(
                 self.state.cycle_count, "Bx", bx_entry, self.bx_lot,
-                bx_entry + self.tp_pips, bx_entry - self.sl_pips, bx_ticket
+                0, 0, bx_ticket
             )
 
         if sy_ticket:
@@ -230,7 +222,7 @@ class PairStrategyEngine:
             self.state.sy_entry = sy_entry
             self.activity_log.log_fire(
                 self.state.cycle_count, "Sy", sy_entry, self.sy_lot,
-                sy_entry - self.tp_pips, sy_entry + self.sl_pips, sy_ticket
+                0, 0, sy_ticket
             )
 
         # Transition to awaiting second
@@ -403,7 +395,7 @@ class PairStrategyEngine:
             self.state.sx_entry = sx_entry
             self.activity_log.log_fire(
                 self.state.cycle_count, "Sx", sx_entry, self.sx_lot,
-                sx_entry - self.tp_pips, sx_entry + self.sl_pips, sx_ticket
+                0, 0, sx_ticket
             )
 
         if by_ticket:
@@ -411,7 +403,7 @@ class PairStrategyEngine:
             self.state.by_entry = by_entry
             self.activity_log.log_fire(
                 self.state.cycle_count, "By", by_entry, self.by_lot,
-                by_entry + self.tp_pips, by_entry - self.sl_pips, by_ticket
+                0, 0, by_ticket
             )
 
         # Both pairs now complete
@@ -430,71 +422,67 @@ class PairStrategyEngine:
                                      sl_pips: float = None) -> Tuple[int, float]:
         """
         Send a market order to MT5. Returns (ticket, entry_price) or (0, 0.0).
-        Optional tp_pips/sl_pips override the default grid TP/SL.
+        Paired legs (Bx/Sy/Sx/By) are sent WITHOUT SL/TP — exits are handled
+        by protection distance and single fire rules.
+        SingleFire orders use tp_pips/sl_pips for broker-side SL/TP.
         """
         tick = mt5.symbol_info_tick(self.symbol)
         if not tick:
             self.activity_log.log_error(f"No tick for {leg_name}")
             return 0, 0.0
 
-        # Use overrides if provided, else defaults
-        tp_pips_val = tp_pips if tp_pips is not None else self.tp_pips
-        sl_pips_val = sl_pips if sl_pips is not None else self.sl_pips
-
-        # Determine price and TP/SL
+        # Determine price and direction
         if direction == "buy":
             exec_price = tick.ask
-            tp = exec_price + tp_pips_val * self.pip_size
-            sl = exec_price - sl_pips_val * self.pip_size
             order_type = mt5.ORDER_TYPE_BUY
-            check_price = tick.bid # For stop level validation
         else:
             exec_price = tick.bid
-            tp = exec_price - tp_pips_val * self.pip_size
-            sl = exec_price + sl_pips_val * self.pip_size
             order_type = mt5.ORDER_TYPE_SELL
-            check_price = tick.ask # For stop level validation
-
-        # --- TRADE STOPS LEVEL SAFETY (from SymbolEngine) ---
-        symbol_info = mt5.symbol_info(self.symbol)
-        if symbol_info:
-            point = symbol_info.point
-            stops_level = max(symbol_info.trade_stops_level, 10) # Min 10 pts safety
-            min_dist = stops_level * point
-
-            # Also ensure TP/SL are at least 1 pip away if min_dist is tiny
-            min_dist = max(min_dist, self.pip_size)
-
-            if direction == "buy":
-                if sl > check_price - min_dist:
-                    sl = check_price - min_dist
-                if tp < check_price + min_dist:
-                    tp = check_price + min_dist
-            else:
-                if sl < check_price + min_dist:
-                    sl = check_price + min_dist
-                if tp > check_price - min_dist:
-                    tp = check_price - min_dist
 
         # Snapshot existing tickets BEFORE opening (to find the new one after)
         positions_before = mt5.positions_get(symbol=self.symbol)
         existing_tickets = set(pos.ticket for pos in positions_before) if positions_before else set()
 
-        # Build request
+        # Build request — no SL/TP for paired legs
         request = {
             "action": mt5.TRADE_ACTION_DEAL,
             "symbol": self.symbol,
             "volume": float(lot_size),
             "type": order_type,
             "price": exec_price,
-            "sl": float(sl),
-            "tp": float(tp),
             "magic": self.MAGIC_NUMBER,
             "comment": f"{leg_name} C{self.state.cycle_count}",
             "type_time": mt5.ORDER_TIME_GTC,
             "type_filling": self._get_filling_mode(),
             "deviation": 200
         }
+
+        # Only SingleFire gets broker-side SL/TP
+        if tp_pips is not None and sl_pips is not None:
+            if direction == "buy":
+                request["tp"] = float(exec_price + tp_pips * self.pip_size)
+                request["sl"] = float(exec_price - sl_pips * self.pip_size)
+            else:
+                request["tp"] = float(exec_price - tp_pips * self.pip_size)
+                request["sl"] = float(exec_price + sl_pips * self.pip_size)
+
+            # Ensure SL/TP respect broker minimum stop distance
+            symbol_info = mt5.symbol_info(self.symbol)
+            if symbol_info:
+                point = symbol_info.point
+                stops_level = max(symbol_info.trade_stops_level, 10)
+                min_dist = max(stops_level * point, self.pip_size)
+                check_price = tick.bid if direction == "buy" else tick.ask
+                if direction == "buy":
+                    if request["sl"] > check_price - min_dist:
+                        request["sl"] = check_price - min_dist
+                    if request["tp"] < check_price + min_dist:
+                        request["tp"] = check_price + min_dist
+                else:
+                    if request["sl"] < check_price + min_dist:
+                        request["sl"] = check_price + min_dist
+                    if request["tp"] > check_price - min_dist:
+                        request["tp"] = check_price - min_dist
 
         # Send order
         result = mt5.order_send(request)
@@ -531,20 +519,27 @@ class PairStrategyEngine:
                         break
 
         # Store in ticket_map
-        self.ticket_map[actual_ticket] = {
+        entry_info = {
             "leg": leg_name,
             "direction": direction,
             "entry": actual_entry,
-            "tp": tp,
-            "sl": sl,
             "lot": lot_size
         }
 
-        # Initialize touch flags
-        self.ticket_touch_flags[actual_ticket] = {
-            "tp_touched": False,
-            "sl_touched": False
-        }
+        # Only SingleFire stores TP/SL for drop detection
+        if tp_pips is not None and sl_pips is not None:
+            if direction == "buy":
+                entry_info["tp"] = actual_entry + tp_pips * self.pip_size
+                entry_info["sl"] = actual_entry - sl_pips * self.pip_size
+            else:
+                entry_info["tp"] = actual_entry - tp_pips * self.pip_size
+                entry_info["sl"] = actual_entry + sl_pips * self.pip_size
+            self.ticket_touch_flags[actual_ticket] = {
+                "tp_touched": False,
+                "sl_touched": False
+            }
+
+        self.ticket_map[actual_ticket] = entry_info
 
         return actual_ticket, actual_entry
 
@@ -592,15 +587,15 @@ class PairStrategyEngine:
     def _update_touch_flags(self, ask: float, bid: float):
         """
         Latch touch flags when price crosses TP/SL levels.
-        Called EVERY tick BEFORE position drop check.
+        Only applies to SingleFire positions (paired legs have no SL/TP).
         """
         for ticket, info in list(self.ticket_map.items()):
-            if not info:
-                continue
+            if not info or "tp" not in info:
+                continue  # Skip paired legs — no SL/TP
 
             direction = info.get("direction", "")
-            tp_price = info.get("tp", 0)
-            sl_price = info.get("sl", 0)
+            tp_price = info["tp"]
+            sl_price = info["sl"]
 
             flags = self.ticket_touch_flags.get(ticket)
             if flags is None:
@@ -608,23 +603,21 @@ class PairStrategyEngine:
                 self.ticket_touch_flags[ticket] = flags
 
             if direction == "buy":
-                # BUY TP hit when bid >= tp_price
                 if not flags['tp_touched'] and bid >= tp_price:
                     flags['tp_touched'] = True
-                # BUY SL hit when bid <= sl_price
                 if not flags['sl_touched'] and bid <= sl_price:
                     flags['sl_touched'] = True
-            else:  # sell
-                # SELL TP hit when ask <= tp_price
+            else:
                 if not flags['tp_touched'] and ask <= tp_price:
                     flags['tp_touched'] = True
-                # SELL SL hit when ask >= sl_price
                 if not flags['sl_touched'] and ask >= sl_price:
                     flags['sl_touched'] = True
 
     async def _check_position_drops(self, ask: float, bid: float):
         """
-        Detect positions that have been closed by MT5 (TP/SL hit).
+        Detect positions that have disappeared from MT5.
+        Paired legs are closed by the bot (force-close / nuclear reset), so
+        drops are only meaningful for SingleFire (broker-side TP/SL).
         """
         # Get current open tickets
         positions = mt5.positions_get(symbol=self.symbol)
@@ -645,42 +638,37 @@ class PairStrategyEngine:
             leg = info.get("leg", "")
             direction = info.get("direction", "")
             entry = info.get("entry", 0)
-            tp_price = info.get("tp", 0)
-            sl_price = info.get("sl", 0)
             lot = info.get("lot", 0)
 
-            # Determine if TP or SL using touch flags
-            flags = self.ticket_touch_flags.get(ticket, {})
-            is_tp = flags.get("tp_touched", False)
-            is_sl = flags.get("sl_touched", False)
+            # SingleFire has TP/SL — determine which was hit
+            if "tp" in info:
+                tp_price = info["tp"]
+                sl_price = info["sl"]
+                flags = self.ticket_touch_flags.get(ticket, {})
+                is_tp = flags.get("tp_touched", False)
+                is_sl = flags.get("sl_touched", False)
 
-            # Fallback: infer from current price distance
-            if not is_tp and not is_sl:
-                # Use side-aware price for inference
-                check_price = bid if direction == "buy" else ask
-                tp_dist = abs(check_price - tp_price)
-                sl_dist = abs(check_price - sl_price)
-                is_tp = tp_dist < sl_dist
-                is_sl = not is_tp
+                if not is_tp and not is_sl:
+                    check_price = bid if direction == "buy" else ask
+                    tp_dist = abs(check_price - tp_price)
+                    sl_dist = abs(check_price - sl_price)
+                    is_tp = tp_dist < sl_dist
+                    is_sl = not is_tp
 
-                reason = "TP" if is_tp else "SL"
-                print(f"[DROP-INFER] {self.symbol}: Ticket={ticket} {direction.upper()} "
-                      f"-> {reason} (dist_tp={tp_dist:.5f}, dist_sl={sl_dist:.5f})")
+                close_price = tp_price if is_tp else sl_price
+                if direction == "buy":
+                    realized = (close_price - entry) * lot
+                else:
+                    realized = (entry - close_price) * lot
+                self.state.realized_pnl += realized
 
-            # Calculate realized PnL
-            close_price = tp_price if is_tp else sl_price
-            if direction == "buy":
-                realized = (close_price - entry) * lot
+                if is_tp:
+                    self.activity_log.log_tp_hit(ticket, leg, close_price, realized, "")
+                else:
+                    self.activity_log.log_sl_hit(ticket, leg, close_price, realized)
             else:
-                realized = (entry - close_price) * lot
-
-            self.state.realized_pnl += realized
-
-            # Log the event
-            if is_tp:
-                self.activity_log.log_tp_hit(ticket, leg, close_price, realized, "")
-            else:
-                self.activity_log.log_sl_hit(ticket, leg, close_price, realized)
+                # Paired leg closed (by force-close or nuclear reset) — just log
+                self.activity_log.log_info(f"{leg} position closed (ticket {ticket})")
 
             # Clear from tracking
             self._clear_ticket_from_state(ticket)

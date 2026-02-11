@@ -52,42 +52,33 @@ def get_default_symbol_config(symbol: str = "EURUSD") -> Dict[str, Any]:
     # Asset Class Defaults
     # Gold (XAUUSD)
     if symbol == "XAUUSD":
-        grid = 50.0; tp = 100.0; sl = 150.0; prot = 200.0
-    # Silver (XAGUSD)
+        grid = 50.0; sf_tp = 40.0; sf_sl = 20.0; prot = 200.0
     elif symbol == "XAGUSD":
-        grid = 50.0; tp = 100.0; sl = 150.0; prot = 200.0
-    # Crypto (BTC)
+        grid = 50.0; sf_tp = 100.0; sf_sl = 150.0; prot = 200.0
     elif symbol.startswith("BTC"):
-        grid = 100.0; tp = 200.0; sl = 300.0; prot = 500.0
-    # Crypto (ETH, SOL, etc)
+        grid = 100.0; sf_tp = 200.0; sf_sl = 300.0; prot = 500.0
     elif symbol in ["ETHUSD", "SOLUSD", "BNBUSD"]:
-        grid = 100.0; tp = 200.0; sl = 300.0; prot = 500.0
-    # Indices (NAS100, US30)
+        grid = 100.0; sf_tp = 200.0; sf_sl = 300.0; prot = 500.0
     elif symbol in ["NAS100", "US30"]:
-        grid = 30.0; tp = 50.0; sl = 80.0; prot = 100.0
-    # Indices (US500 - low volatility)
+        grid = 30.0; sf_tp = 50.0; sf_sl = 80.0; prot = 100.0
     elif symbol == "US500":
-        grid = 8.0; tp = 15.0; sl = 20.0; prot = 30.0
-    # Oil
+        grid = 8.0; sf_tp = 15.0; sf_sl = 20.0; prot = 30.0
     elif "OIL" in symbol:
-        grid = 40.0; tp = 80.0; sl = 100.0; prot = 150.0
-    # Forex (Default)
+        grid = 40.0; sf_tp = 80.0; sf_sl = 100.0; prot = 150.0
     else:
-        grid = 20.0; tp = 50.0; sl = 60.0; prot = 100.0
+        grid = 20.0; sf_tp = 50.0; sf_sl = 60.0; prot = 100.0
 
     return {
         "enabled": False,
         "pip_size": pip_size,        # Conversion factor for pips
         "grid_distance": grid,       # Pips between atomic fires
-        "tp_pips": tp,               # Take profit distance
-        "sl_pips": sl,               # Stop loss distance
         "bx_lot": 0.01,              # Initial Buy lot (Pair X)
         "sy_lot": 0.01,              # Initial Sell lot (Pair Y)
         "sx_lot": 0.01,              # Completing Sell lot (Pair X)
         "by_lot": 0.01,              # Completing Buy lot (Pair Y)
         "single_fire_lot": 0.01,         # Single fire lot size
-        "single_fire_tp_pips": tp,       # Single fire TP 
-        "single_fire_sl_pips": sl,       # Single fire SL
+        "single_fire_tp_pips": sf_tp,    # Single fire TP
+        "single_fire_sl_pips": sf_sl,    # Single fire SL
         "protection_distance": prot,     # Pips before nuclear reset on reversal
     }
 
@@ -200,12 +191,6 @@ class ConfigManager:
                     # Validate pip_size: must be > 0
                     ps = self.config["symbols"][symbol].get("pip_size", 0.0001)
                     self.config["symbols"][symbol]["pip_size"] = max(0.00000001, float(ps))
-                    
-                    # Validate tp_pips and sl_pips: must be > 0
-                    tp = self.config["symbols"][symbol].get("tp_pips", 150.0)
-                    sl = self.config["symbols"][symbol].get("sl_pips", 200.0)
-                    self.config["symbols"][symbol]["tp_pips"] = max(1.0, float(tp))
-                    self.config["symbols"][symbol]["sl_pips"] = max(1.0, float(sl))
                     
                     # Validate lot sizes: all must be > 0, default to 0.01
                     for lot_field in ["bx_lot", "sy_lot", "sx_lot", "by_lot", "single_fire_lot"]:
