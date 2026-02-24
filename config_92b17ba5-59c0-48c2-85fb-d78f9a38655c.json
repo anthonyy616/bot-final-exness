@@ -1,6 +1,6 @@
 {
     "global": {
-        "max_runtime_minutes": 180
+        "max_runtime_minutes": 120
     },
     "symbols": {
         "EURUSD": {
@@ -215,10 +215,10 @@
             "enabled": true,
             "pip_size": 0.1,
             "grid_distance": 10.0,
-            "bx_lot": 1.71,
-            "sy_lot": 1.71,
-            "sx_lot": 2.27,
-            "by_lot": 2.27,
+            "bx_lot": 0.71,
+            "sy_lot": 0.71,
+            "sx_lot": 1.27,
+            "by_lot": 1.27,
             "single_fire_lot": 0.56,
             "single_fire_tp_pips": 40.0,
             "single_fire_sl_pips": 20.0,

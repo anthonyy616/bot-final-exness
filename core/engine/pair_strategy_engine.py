@@ -22,6 +22,7 @@ import MetaTrader5 as mt5
 from datetime import datetime
 
 from core.engine.activity_logger import ActivityLogger
+from core.engine.direction_engine import DirectionEngine
 
 logger = logging.getLogger("pair_strategy")
 
@@ -102,6 +103,9 @@ class PairStrategyEngine:
 
         # pip_size cache
         self.pip_size = self.config_manager.get_pip_size(self.symbol)
+
+        # Direction scoring engine for single fire
+        self.direction_engine = DirectionEngine(self.symbol)
         
     def _get_filling_mode(self):
         """
@@ -334,15 +338,15 @@ class PairStrategyEngine:
         """
         start = self.state.start_price
 
-        # Check if grid distance reached (either direction)
-        # Check if grid distance reached (either direction)
-        triggered_up = ask >= start + self.grid_distance * self.pip_size
-        triggered_down = bid <= start - self.grid_distance * self.pip_size
+        # Check if grid distance reached (either direction) using mid-price
+        mid = (ask + bid) / 2
+        triggered_up = mid >= start + self.grid_distance * self.pip_size
+        triggered_down = mid <= start - self.grid_distance * self.pip_size
 
         if not (triggered_up or triggered_down):
             return
 
-        trigger_price = ask if triggered_up else bid
+        trigger_price = mid
 
         # Record location and reference price of second atomic fire
         self.state.location = "UP" if triggered_up else "DOWN"
@@ -700,15 +704,16 @@ class PairStrategyEngine:
             return
 
         if self.state.location == "DOWN":
-            # Single fire trigger: bid falls to/below trigger -> BUY
+            # Single fire trigger: bid falls to/below trigger -> direction from scoring engine
             if bid <= self.state.single_fire_trigger_price:
-                print(f"[MATH-TRIGGER] {self.symbol}: Single fire BUY triggered "
+                direction = self.direction_engine.resolve(ask, bid)
+                print(f"[MATH-TRIGGER] {self.symbol}: Single fire {direction.upper()} triggered "
                       f"(bid {bid:.5f} <= {self.state.single_fire_trigger_price:.5f})")
                 self.activity_log.log_info(
-                    f"Price reached {bid:.2f} — placing Recovery BUY trade"
+                    f"Price reached {bid:.2f} — placing Recovery {direction.upper()} trade"
                 )
                 self.state.single_fire_executed = True
-                await self._execute_single_fire(bid, "buy")
+                await self._execute_single_fire(bid, direction)
                 # Force-close Pair X (Bx + Sx) - broker spread may have prevented TP/SL
                 await self._force_close_pair("X")
                 return
@@ -724,15 +729,16 @@ class PairStrategyEngine:
                 return
 
         elif self.state.location == "UP":
-            # Single fire trigger: ask rises to/above trigger -> SELL
+            # Single fire trigger: ask rises to/above trigger -> direction from scoring engine
             if ask >= self.state.single_fire_trigger_price:
-                print(f"[MATH-TRIGGER] {self.symbol}: Single fire SELL triggered "
+                direction = self.direction_engine.resolve(ask, bid)
+                print(f"[MATH-TRIGGER] {self.symbol}: Single fire {direction.upper()} triggered "
                       f"(ask {ask:.5f} >= {self.state.single_fire_trigger_price:.5f})")
                 self.activity_log.log_info(
-                    f"Price reached {ask:.2f} — placing Recovery SELL trade"
+                    f"Price reached {ask:.2f} — placing Recovery {direction.upper()} trade"
                 )
                 self.state.single_fire_executed = True
-                await self._execute_single_fire(ask, "sell")
+                await self._execute_single_fire(ask, direction)
                 # Force-close Pair Y (By + Sy) - broker spread may have prevented TP/SL
                 await self._force_close_pair("Y")
                 return
