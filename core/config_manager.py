@@ -11,7 +11,7 @@ AVAILABLE_SYMBOLS = [
     # Metals
     "XAUUSD", "XAGUSD",
     # Indices
-    "NAS100", "US30", "US500",
+    "USTEC", "US30", "US500",
     # Oil
     "USOIL", "UKOIL",
     # Crypto
@@ -30,7 +30,7 @@ PIP_SIZES = {
     "XAUUSD": 0.1,    # Gold — 1 pip = $0.10
     "XAGUSD": 0.01,   # Silver — 1 pip = $0.01
     # Indices — 1 pip = 1 point
-    "NAS100": 1.0, "US30": 1.0, "US500": 1.0,
+    "USTEC": 1.0, "US30": 1.0, "US500": 1.0,
     # Oil — 1 pip = $0.01
     "USOIL": 0.01, "UKOIL": 0.01,
     # Crypto
@@ -59,7 +59,7 @@ def get_default_symbol_config(symbol: str = "EURUSD") -> Dict[str, Any]:
         grid = 100.0; sf_tp = 200.0; sf_sl = 300.0; prot = 500.0
     elif symbol in ["ETHUSD", "SOLUSD", "BNBUSD"]:
         grid = 100.0; sf_tp = 200.0; sf_sl = 300.0; prot = 500.0
-    elif symbol in ["NAS100", "US30"]:
+    elif symbol in ["USTEC", "US30"]:
         grid = 30.0; sf_tp = 50.0; sf_sl = 80.0; prot = 100.0
     elif symbol == "US500":
         grid = 8.0; sf_tp = 15.0; sf_sl = 20.0; prot = 30.0
